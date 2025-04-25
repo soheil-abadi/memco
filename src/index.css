@@ -1,0 +1,14 @@
+
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+@import "swiper/css/pagination";
+@import "swiper/css/scrollbar";
+@import "swiper/css";
+
+body {
+  background-color: #09090b;
+}
+
+button {
+  cursor: pointer;
+}
