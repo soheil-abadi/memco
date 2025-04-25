@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Line } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -21,7 +21,6 @@ import {
   IconButton,
 } from "@mui/material";
 import { Tooltip as ReactTooltip } from "react-tooltip";
-import Joyride, { Step } from "react-joyride";
 import { HiMenuAlt2 } from "react-icons/hi";
 
 ChartJS.register(
@@ -67,34 +66,12 @@ export const Dashboard = () => {
   const [pendingParam, setPendingParam] = useState<string | null>(null);
   const [openConfirmModal, setOpenConfirmModal] = useState(false);
   const [actionType, setActionType] = useState<"add" | "remove">("add");
-  const [runTour, setRunTour] = useState(true);
+
+  const [tourStep, setTourStep] = useState(0);
 
   const toggleDrawer = (open: boolean) => () => {
     setDrawerOpen(open);
-    if (open) {
-      setRunTour(true);
-    }
   };
-
-  const tourSteps: Step[] = [
-    {
-      target: ".joyride-sidebar",
-      content: "Welcome to the Dashboard! Use this menu to navigate.",
-      disableBeacon: true,
-    },
-    {
-      target: ".joyride-parameters",
-      content: "Drag parameters from here to the table to add them.",
-    },
-    {
-      target: ".joyride-table",
-      content: "Drop parameters into the table to view and chart them.",
-    },
-    {
-      target: ".joyride-chart",
-      content: "This chart updates with the selected parameters.",
-    },
-  ];
 
   const handleDropToTable = (e: React.DragEvent<HTMLDivElement>) => {
     const param = e.dataTransfer.getData("text");
@@ -175,6 +152,12 @@ export const Dashboard = () => {
     },
   };
 
+  useEffect(() => {
+    if (tourStep === 4) {
+      setTourStep(0); // Reset after tour is complete
+    }
+  }, [tourStep]);
+
   return (
     <div className="flex min-h-screen bg-gray-900 text-white">
       {!drawerOpen && (
@@ -201,13 +184,20 @@ export const Dashboard = () => {
         }}
       >
         <div className="p-6 space-y-6 joyride-sidebar h-full flex flex-col">
-          <h1 className="text-2xl font-bold mb-2">📊 Dashboard</h1>
+          <h1
+            className="text-2xl font-bold mb-2"
+            data-tip="This is the Dashboard Sidebar"
+          >
+            📊 Dashboard
+          </h1>
           <nav className="flex-1">
             <ul className="space-y-3 text-base">
-              {["Home", "Reports", "Charts", "Settings"].map((item) => (
+              {["Home", "Reports", "Charts", "Settings"].map((item, index) => (
                 <li
                   key={item}
+                  data-tip={`Navigate to ${item}`}
                   className="cursor-pointer px-3 py-2 rounded-lg transition hover:bg-gray-700 hover:text-blue-400"
+                  onClick={() => setTourStep(index + 1)}
                 >
                   {item}
                 </li>
@@ -231,29 +221,6 @@ export const Dashboard = () => {
           </Button>
         </div>
       </Drawer>
-
-      <Joyride
-        steps={tourSteps}
-        run={runTour}
-        showSkipButton
-        showProgress
-        continuous
-        styles={{
-          options: {
-            primaryColor: "#3b82f6",
-            textColor: "#fff",
-            backgroundColor: "#333",
-            zIndex: 10000,
-            overlayColor: "rgba(0, 0, 0, 0.7)",
-            arrowColor: "#333",
-          },
-        }}
-        callback={(data) => {
-          if (data.status === "finished" || data.status === "skipped") {
-            setRunTour(false);
-          }
-        }}
-      />
 
       <AnimatePresence>
         {drawerOpen && (
@@ -281,6 +248,7 @@ export const Dashboard = () => {
                       onDragStart={(e: any) =>
                         e.dataTransfer.setData("text", param)
                       }
+                      data-tip={`Drag to add ${param}`}
                       className="bg-gray-700 text-white p-2 rounded shadow-md cursor-grab hover:bg-blue-500"
                     >
                       {param}
@@ -305,6 +273,7 @@ export const Dashboard = () => {
                             <th
                               key={col}
                               className="px-4 py-2 text-left text-gray-300"
+                              data-tip={`This is the ${col} column`}
                             >
                               <div
                                 className="flex justify-between items-center"
@@ -379,7 +348,6 @@ export const Dashboard = () => {
           },
         }}
       >
-        {" "}
         <DialogTitle>
           {actionType === "add" ? "Confirm Add" : "Confirm Remove"}
         </DialogTitle>
